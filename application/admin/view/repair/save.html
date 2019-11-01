@@ -1,0 +1,156 @@
+<include file='common/meta' />
+<style>
+    .layui-upload-img{width: 92px; height: 92px; margin: 0 10px 10px 0;border:1px solid #eee;}
+    .spec{float:right;width:80%;margin: 0 5px 10px 3px}
+    .remove{width:4% !important;margin:10px 0 0 0;color:#FF5722;cursor:pointer;}
+    .removes{color:#FF5722;cursor:pointer;}
+    .layui-input-inline{margin-right:2px !important;}
+    .layui-unselect{float:left;}
+    .pane{width:13% !important;}
+</style>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form" lay-filter="layuiadmin-form-admin" style="padding: 20px 30px 1px 0;">
+            <form action="" class="layui-form">
+                <input type="hidden" name="id" value="{:input('id')}">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">编辑联保时长/年</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="repair_time" value="{$list.repair_time}" lay-verify="required" autocomplete="off" placeholder="请输入联保时长" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">商品名称</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" value="{$list.title}" lay-verify="required" autocomplete="off" placeholder="请输入商品名称" class="layui-input" readonly="readonly">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">预付款</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="front_money" value="{$list.front_money}" lay-verify="required" autocomplete="off" placeholder="请输入预付款" class="layui-input" readonly="readonly">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">市场价</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="money" value="{$list.money}" lay-verify="required" autocomplete="off" placeholder="请输入市场价" class="layui-input" readonly="readonly">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">可得积分</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="point" value="{$list.point}" lay-verify="required" autocomplete="off" placeholder="请输入可得积分" class="layui-input" readonly="readonly">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">封面图</label>
+                    <div style="margin-top:10px" id="video_val">
+                        <img src="{$list.img}" style="width:200px" id="img" />
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">标签</label>
+                    <div class="layui-input-block">
+                        <select name="label_id" id="" lay-verify="required" lay-search>
+                            <option value="">请选择标签</option>
+                            <foreach name="label" item="vo">
+                                <option value="{$vo.id}" <if condition="$vo.id eq $list.label_id">selected</if>>{$vo.name}</option>
+                            </foreach>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- <div class="layui-form-item">
+                    <label class="layui-form-label">封面图</label>
+                    <div class="layui-input-block layui-upload">
+                        <button type="button" class="layui-btn layui-btn-normal file" id="test1"><i class="layui-icon"></i>上传封面图</button>
+                        <input class="layui-upload-file" type="file" accept="undefined" name="file" id="test1s">
+                        <span class="layui-inline layui-upload-choose">支持 png、jpg、jpeg 格式文件</span>
+                    </div>
+                     <label class="layui-form-label"></label>
+                    <div style="margin-top:10px" id="video_val">
+                        <img src="{$list.img}" style="width:200px" id="img" />
+                    </div>
+                </div> -->
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">视频</label>
+                    <div class="layui-input-block layui-upload">
+                        <button type="button" class="layui-btn layui-btn-normal file" id="test2"><i class="layui-icon"></i>上传视频</button>
+                        <input class="layui-upload-file" type="file" accept="undefined" name="files" id="test2s">
+                        <!-- <span class="layui-inline layui-upload-choose">支持 png、jpg、jpeg 格式文件</span> -->
+                    </div>
+                     <label class="layui-form-label"></label>
+                    <div style="margin-top:10px" id="video_val">
+                        <video controls="controls" src="{$list.video}"></video>
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">商品详情</label>
+                    <div class="layui-input-block">
+                        <textarea placeholder="请输入商品详情" lay-verify="required" name="content" class="layui-textarea edit">{$list.content}</textarea>
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-inline">
+                        <input type="button" lay-submit id="transmit" lay-filter="LAY-user-back-submit" value="确认" class="layui-btn">
+                        <button type="reset" class="layui-btn layui-btn-primary" onclick="javascript:history.go(-1)">返回</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<include file='common/edit' />
+<script>
+    layui.use(['upload','laydate','form'],function(){
+        var upload = layui.upload;
+        var form = layui.form;
+
+        //封面上传
+        upload.render({
+            elem: '#test1',
+            auto: false,
+            field:'img',
+            //,multiple: true
+            bindAction: '#test1s',
+            done: function(res){
+              console.log(res)
+            }
+        });
+
+        //视频上传
+        upload.render({
+            elem: '#test2',
+            auto: false,
+            field:'video',
+            accept:'file',
+            //,multiple: true
+            bindAction: '#test2s',
+            done: function(res){
+              console.log(res)
+            }
+        });
+    });
+
+    //表单上传
+    fromUpload('form',"{:url('Rgoods/save')}");
+
+    $('.edit').editable({
+        inlineMode: false,
+        alwaysBlank: true,
+        language: "zh_cn",
+        imageUploadURL:"{:url('common/fileUpload')}"
+    }) 
+</script>

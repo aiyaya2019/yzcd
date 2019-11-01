@@ -1,0 +1,90 @@
+<include file='common/meta' />
+<style>
+    .layui-upload-img{width: 92px; height: 92px; margin: 0 10px 10px 0;border:1px solid #eee;}
+    .spec{float:right;width:80%;margin: 0 5px 10px 3px}
+    .remove{width:4% !important;margin:10px 0 0 0;color:#FF5722;cursor:pointer;}
+    .removes{color:#FF5722;cursor:pointer;}
+    .layui-input-inline{margin-right:2px !important;}
+    .layui-unselect{float:left;}
+    .pane{width:13% !important;}
+</style>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form" lay-filter="layuiadmin-form-admin" style="padding: 20px 30px 1px 0;">
+            <form action="" class="layui-form">
+                <input type="hidden" name="id" value="1">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">视频</label>
+                    <div class="layui-input-block layui-upload">
+                        <button type="button" class="layui-btn layui-btn-normal file" id="test2"><i class="layui-icon"></i>上传视频</button>
+                        <input class="layui-upload-file" type="file" accept="undefined" name="files" id="test2s">
+                        <!-- <span class="layui-inline layui-upload-choose">支持 png、jpg、jpeg 格式文件</span> -->
+                    </div>
+                     <label class="layui-form-label"></label>
+                    <div style="margin-top:10px" id="video_val">
+                        <video controls="controls" src="{$about.video}"></video>
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">关于我们</label>
+                    <div class="layui-input-block">
+                        <textarea placeholder="请输入关于我们" lay-verify="required" name="content" class="layui-textarea edit">{$about.content}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-inline">
+                        <input type="button" lay-submit id="transmit" lay-filter="LAY-user-back-submit" value="确认" class="layui-btn">
+                        <button type="reset" class="layui-btn layui-btn-primary" onclick="javascript:history.go(-1)">返回</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<include file='common/edit' />
+<script>
+    layui.use(['upload','laydate','form'],function(){
+        var upload = layui.upload;
+        var form = layui.form;
+
+        //封面上传
+        upload.render({
+            elem: '#test1',
+            auto: false,
+            field:'img',
+            //,multiple: true
+            bindAction: '#test1s',
+            done: function(res){
+              console.log(res)
+            }
+        });
+
+        //视频上传
+        upload.render({
+            elem: '#test2',
+            auto: false,
+            field:'video',
+            accept:'file',
+            //,multiple: true
+            bindAction: '#test2s',
+            done: function(res){
+              console.log(res)
+            }
+        });
+    });
+
+    //表单上传
+    fromUpload('form',"{:url('Config/about')}");
+
+    $('.edit').editable({
+        inlineMode: false,
+        alwaysBlank: true,
+        language: "zh_cn",
+        imageUploadURL:"{:url('common/fileUpload')}"
+    }) 
+</script>

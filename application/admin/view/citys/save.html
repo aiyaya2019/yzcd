@@ -1,0 +1,171 @@
+<include file='common/meta' />
+<style>
+    .layui-upload-img{width: 92px; height: 92px; margin: 0 10px 10px 0;border:1px solid #eee;}
+    .spec{float:right;width:80%;margin: 0 5px 10px 3px}
+    .remove{width:4% !important;margin:10px 0 0 0;color:#FF5722;cursor:pointer;}
+    .removes{color:#FF5722;cursor:pointer;}
+    .layui-input-inline{margin-right:2px !important;}
+    .layui-unselect{float:left;}
+    .pane{width:13% !important;}
+</style>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form" lay-filter="layuiadmin-form-admin" style="padding: 20px 30px 1px 0;">
+            <form action="" class="layui-form">
+                <input type="hidden" name="id" id="id" value="{:input('id')}">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">城市类型</label>
+                    <div class="layui-input-block">
+                        <select name="cate_id" id="" lay-verify="required" lay-search>
+                            <option value="">请选择城市类型</option>
+                            <foreach name="cate" item="vo">
+                                <option value="{$vo.id}" <if condition="$vo.id eq $city.cate_id">selected</if>>{$vo.name}</option>
+                            </foreach>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">省</label>
+                    <div class="layui-input-block">
+                        <select name="province_id" id="province_id" lay-verify="required" lay-search lay-filter="province_id">
+                            <option value="">--请选择省--</option>
+                            <foreach name="province" item="vo">
+                                <option value="{$vo.id}" <if condition="$vo.id eq $city.province_id">selected</if>>{$vo.name}</option>
+                            </foreach>
+                        </select>
+                        <input type="hidden" name="province" id="province" />
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">市</label>
+                    <div class="layui-input-block">
+                        <select name="city" id="city" lay-verify="required" lay-search lay-filter="city">
+                            <if condition="$city">
+                                <option value="{$city.city}">{$city.city}</option>
+                            <else/>
+                                <option value="">--请选择市--</option>
+                            </if>
+                            
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">入驻数量</label>
+                    <div class="layui-input-block">
+                        <input type="number" name="num" value="{$city.num}" lay-verify="required" autocomplete="off" placeholder="请输入内容" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-inline">
+                        <input type="button" lay-submit id="transmit" lay-filter="LAY-user-back-submit" value="确认" class="layui-btn">
+                        <button type="reset" class="layui-btn layui-btn-primary" onclick="javascript:history.go(-1)">返回</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<include file='common/edit' />
+<script>
+    layui.use(['upload','laydate','form'],function(){
+        var upload = layui.upload;
+        var form = layui.form;
+
+        //服务前图片上传
+        upload.render({
+            elem: '#test1',
+            auto: false,
+            field:'old_img',
+            //,multiple: true
+            bindAction: '#test1s',
+            done: function(res){
+              console.log('======')
+              console.log(res)
+            }
+        });
+        //服务后图片上传
+        upload.render({
+            elem: '#test2',
+            auto: false,
+            field:'new_img',
+            //,multiple: true
+            bindAction: '#test2s',
+            done: function(res){
+              console.log(res)
+            }
+        });
+
+        form.on('select(province_id)', function(data){
+            console.log(data.elem); //得到select原始DOM对象
+            // console.log(data.othis); //得到美化后的DOM对象
+            // console.log(data.value); //得到被选中的值
+            // var select_text = data.elem[data.elem.selectedIndex].text;
+                        
+            var id = data.value;//省id
+            if (!id) {layer.msg('请选择省');}
+
+            var province = data.elem[data.elem.selectedIndex].text;
+            $('#province').val(province);
+
+            var senddata = 'id=' + id;
+
+            $.ajax({
+                url: '/Admin/Common/getCity',
+                type: 'POST',
+                dataType: 'json',
+                data: senddata,//数据，这里使用的是Json格式进行传输
+                success: function(data){
+                    console.log(data);
+                    if (data.code == '200') {
+                        var html = '';
+                        var da = data.data
+
+                        var res;
+                        for (var k in da) {
+                            res   = da[k];
+                            html += "<option value='" + res.name + "'>" + res.name + "</option>";
+                        }
+                        // console.log(html);
+                        $('#city').html(html);
+                        form.render();
+                    }else{
+                        layer.msg(data.msg);
+                    }
+                },
+                error: function(){
+                    layer.msg('网络错误');
+                }
+            });
+
+        }); 
+
+    });
+
+    //表单上传
+    fromUpload('form',"{:url('Citys/save')}",function(data){
+        if(data.code == 200){
+            if(data.data != ''){
+                // layer.msg('案例保存成功，前往添加案例规格',{time:3000},function(){
+                //     window.location.href = "{:url('Example/attr_spec')}?id="+data.data
+                // });
+            } else {
+                layer.msg(data.msg,{time:1500},function(){
+                    //返回上一页刷新
+                    self.location=document.referrer;
+                });
+            }
+        } else {
+            layer.msg(data.msg,{time:3000});
+        }
+    });
+
+    $('.edit').editable({
+        inlineMode: false, 
+        alwaysBlank: true,
+        language: "zh_cn",
+        imageUploadURL:"{:url('common/fileUpload')}"
+    }) 
+</script>

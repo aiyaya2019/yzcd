@@ -1,0 +1,127 @@
+<include file='common/meta' />
+<style>
+    .layui-table-cell{
+       height: 100%;
+        max-width: 100%;
+    }
+</style>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">提现列表</div>
+
+                <div class="layui-form layui-card-header layuiadmin-card-header-auto" lay-filter="app-content-list">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <input type="text" name="keywords" placeholder="请输入姓名" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+
+                        <div class="layui-inline">
+
+                            <label class="layui-form-label">订单状态</label>
+
+                            <div class="layui-input-inline">
+                                <select name="type">
+                                    <option value="">全部状态</option>
+
+                                    <option value="4">申请中</option>
+
+                                    <option value="5">提现成功</option>
+
+                                    <option value="6">提现失败</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <div class="layui-inline">
+                            <button class="layui-btn layuiadmin-btn-list" lay-submit="" lay-filter="LAY-app-contlist-search">
+                                <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="test-table-autowidth"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use(['table','form'],function(){
+        var table = layui.table;
+        var form = layui.form;
+        var url = "{:url('Cash/shop_cash')}";
+
+        //监听搜索
+        form.on('submit(LAY-app-contlist-search)', function(data){
+            var field = data.field;
+            field.page = 1;
+            //执行重载
+            table.reload('test-table-autowidth', {
+                where: field
+            });
+        });
+
+        table.render({
+            elem: '#test-table-autowidth',
+            url:url,
+            method:'post',
+            response:{
+                statusCode:200
+            },
+            skin:'line',
+            page:{
+                layout:['prev','page','next','skip','count']
+            },
+            where:{type:"{:input('type')}"},
+            limit:20,
+            toolbar:'#add',
+            defaultToolbar:false,
+            cols:[[
+                {field:'id',title:'编号',width:'4%',align:'center'},
+                {field:'msg',title:'标题'},
+                {field:'money',title:'提现金额'},
+
+                {field:'name',title:'银行名称'},
+                {field:'bank_code',title:'银行编号'},
+                {field:'bank_num',title:'银行卡号',width:'15%'},
+                {field:'username',title:'提现人姓名'},
+
+
+                {field:'type_name',title:'提现状态'},
+
+                {field:'add_time',title:'下单时间', width:'10%'},
+                {
+                    title:'操作',
+                    width:'20%',
+                    toolbar:'#barDemo'
+                }
+            ]]
+        })
+    })
+</script>
+
+<script type="text/html" id="barDemo">
+  <a class="layui-btn layui-btn-xs" lay-event="edit" href="{:url('Point/info')}?id={{d.id}}">查看</a>
+  <!-- <a class="layui-btn layui-btn-xs" lay-event="edit" href="{:url('Point/save')}?id={{d.id}}">编辑</a>-->
+</script>
+
+<!-- <script type="text/html" id="add">
+  <a class="layui-btn layui-btn-xs" lay-event="edit" href="{:url('Point/save')}">发布商品</a>
+</script> -->
+
+<script>
+    function update(id,type){
+        var data = {
+            id:id,
+            status:type
+        };
+        get_request("{:url('Point/changeStatus')}",data);
+    }
+</script>

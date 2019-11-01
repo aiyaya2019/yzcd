@@ -1,0 +1,150 @@
+<include file='common/meta' />
+<style>
+    .layui-upload-img{width: 92px; height: 92px; margin: 0 10px 10px 0;border:1px solid #eee;}
+    .spec{float:right;width:80%;margin: 0 5px 10px 3px}
+    .remove{width:4% !important;margin:10px 0 0 0;color:#FF5722;cursor:pointer;}
+    .removes{color:#FF5722;cursor:pointer;}
+    .layui-input-inline{margin-right:2px !important;}
+    .layui-unselect{float:left;}
+    .pane{width:13% !important;}
+</style>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form" lay-filter="layuiadmin-form-admin" style="padding: 20px 30px 1px 0;">
+            <form action="" class="layui-form">
+                <input type="hidden" name="id" id="id" value="{:input('id')}">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">所属品牌型号</label>
+                    <div class="layui-input-block">
+                        <select name="brand_id" id="" lay-verify="required" lay-search>
+                            <option value="">请选择案例品牌型号</option>
+                            <foreach name="brand" item="vo">
+                                <option value="{$vo.id}" <if condition="$vo.id eq $cases.brand_id">selected</if>>{$vo.name}</option>
+                            </foreach>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">改装类型</label>
+                    <div class="layui-input-block">
+                        <select name="refit_id" id="" lay-verify="required" lay-search>
+                            <option value="">请选择改装类型</option>
+                            <foreach name="refit" item="vo">
+                                <option value="{$vo.id}" <if condition="$vo.id eq $cases.refit_id">selected</if>>{$vo.name}</option>
+                            </foreach>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">案例标题</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" value="{$cases.title}" lay-verify="required" autocomplete="off" placeholder="请输入内容" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">服务用时</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="use_time" value="{$cases.use_time}"  autocomplete="off" placeholder="请输入内容" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">参考价格</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="money" value="{$cases.money}"  autocomplete="off" placeholder="请输入内容" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">服务前图片</label>
+                    <div class="layui-input-block layui-upload">
+                        <button type="button" class="layui-btn layui-btn-normal file" id="test1"><i class="layui-icon"></i>上传服务前图片</button>
+                        <input class="layui-upload-file" type="file" accept="undefined" name="file" id="test1s">
+                        <span class="layui-inline layui-upload-choose">支持 png、jpg、jpeg 格式文件</span>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">服务后图片</label>
+                    <div class="layui-input-block layui-upload">
+                        <button type="button" class="layui-btn layui-btn-normal file" id="test2"><i class="layui-icon"></i>上传服务后图片</button>
+                        <input class="layui-upload-file" type="file" accept="undefined" name="file" id="test2s">
+                        <span class="layui-inline layui-upload-choose">支持 png、jpg、jpeg 格式文件</span>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">案例详情</label>
+                    <div class="layui-input-block">
+                        <textarea placeholder="请输入案例详情" lay-verify="required" name="content" class="layui-textarea edit">{$cases.content}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label"></label>
+                    <div class="layui-input-inline">
+                        <input type="button" lay-submit id="transmit" lay-filter="LAY-user-back-submit" value="确认" class="layui-btn">
+                        <button type="reset" class="layui-btn layui-btn-primary" onclick="javascript:history.go(-1)">返回</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<include file='common/edit' />
+<script>
+    layui.use(['upload','laydate','form'],function(){
+        var upload = layui.upload;
+        var form = layui.form;
+
+        //服务前图片上传
+        upload.render({
+            elem: '#test1',
+            auto: false,
+            field:'old_img',
+            //,multiple: true
+            bindAction: '#test1s',
+            done: function(res){
+              console.log('======')
+              console.log(res)
+            }
+        });
+        //服务后图片上传
+        upload.render({
+            elem: '#test2',
+            auto: false,
+            field:'new_img',
+            //,multiple: true
+            bindAction: '#test2s',
+            done: function(res){
+              console.log(res)
+            }
+        });
+
+    });
+
+    //表单上传
+    fromUpload('form',"{:url('Example/save')}",function(data){
+        if(data.code == 200){
+            if(data.data != ''){
+                // layer.msg('案例保存成功，前往添加案例规格',{time:3000},function(){
+                //     window.location.href = "{:url('Example/attr_spec')}?id="+data.data
+                // });
+            } else {
+                layer.msg(data.msg,{time:1500},function(){
+                    //返回上一页刷新
+                    self.location=document.referrer;
+                });
+            }
+        } else {
+            layer.msg(data.msg,{time:3000});
+        }
+    });
+
+    $('.edit').editable({
+        inlineMode: false, 
+        alwaysBlank: true,
+        language: "zh_cn",
+        imageUploadURL:"{:url('common/fileUpload')}"
+    }) 
+</script>
