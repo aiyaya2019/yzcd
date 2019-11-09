@@ -307,7 +307,7 @@ class Me extends Common{
 
             $arr = [
                 'status'        => '4',
-                'refund_reason' => ['refund_reason'],
+                'refund_reason' => $post['refund_reason'],
                 'update_time'   => time(),
             ];
             
@@ -526,8 +526,7 @@ class Me extends Common{
             if ($ids){
                 $data = [];
                 foreach ($ids as $key => $value) {
-                    $time = strtotime($value['add_time']);
-                    $data[$key]['add_time'] = date('Y年m月', $time);
+                    $data[$key]['add_time'] = date('Y年m月', $value['add_time']);
                     $data[$key]['months'] = $value['months'];
                     $data[$key]['img'] = Db::name('car_lamp')->field('id, img')->where('id', 'in', $value['ids'])->order('id desc')->select();
                 }

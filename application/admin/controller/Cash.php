@@ -2,7 +2,11 @@
 namespace app\admin\controller;
 use app\common\model\RedPack;
 use app\common\model\MoneyChange;
+use app\common\model\User;
+use app\common\model\Shop;
+use app\common\model\Config;
 
+use think\Db;
 
 
 /**
@@ -57,8 +61,62 @@ Class Cash extends Common{
         return $this->fetch();
     }
 
+    /**
+     * 会员提现审核
+     */
+    public function userExamine(){
+        $post = input('post.');
+
+        $red_pack = RedPack::where('id', $post['id'])->find();
+        $user     = User::where('id', $red_pack['uid'])->find();
+        $base     = Config::where('id', '1')->find();
+
+        $res = controller('Api/Weix')->cashWxpay($user, $base);
+        if ($res['result_code'] != 'SUCCESS') {
+            return_ajax(array(200, $res['err_code_des']));
+        }else{
+            $rs = RedPack::where('id', $post['id'])->update(['type' => '5', 'update_time' => time()]);
+            $rs2 = User::where('id', $red_pack['uid'])->setDec('money', $red_pack['money']);
+            return_ajax(200, '提现成功');
+
+            // if ($rs) {
+            //     return_ajax(200, '提现成功');
+            // }else{
+            //     return_ajax(400, '网络繁忙');
+            // }
+        }
+
+    }
 
 
+    /**
+     * 商家提现审核
+     */
+    public function shopExamine(){
+        $post = input('post.');
+
+        $money_change = MoneyChange::where('id', $post['id'])->find();
+        $shop         = Shop::where('id', $money_change['shop_id'])->find();
+        $user         = User::where('id', $shop['uid'])->find();
+        $base         = Config::where('id', '1')->find();
+
+        $res = controller('Api/Weix')->cashWxpay($user, $base);
+        if ($res['result_code'] != 'SUCCESS') {
+            return_ajax(array(200, $res['err_code_des']));
+        }else{
+            // Db::startTrans();// 启动事务
+            $rs  = MoneyChange::where('id', $post['id'])->update(['type' => '5', 'update_time' => time()]);
+            $rs2 = Shop::where('id', $money_change['shop_id'])->setDec('money', $money_change['bonus_money']);
+            return_ajax(200, '提现成功');
+            // if ($rs && $rs2) {
+            //     // Db::commit();// 提交事务
+            //     return_ajax(200, '提现成功');
+            // }else{
+            //     // Db::rollback();// 回滚事务
+            //     return_ajax(400, '网络繁忙');
+            // }
+        }
+    }
 
 
 }

@@ -2,6 +2,7 @@
 namespace app\admin\controller;
 use app\common\model\Reserve;
 use app\common\model\Shop;
+use app\api\controller\Weix;
 
 /**
  * 服务预约
@@ -100,7 +101,43 @@ Class Reserves extends Common{
         }
     }
 
+    /**
+     * 退款审核
+     */
+    public function refund(){
+        if(request()->isPost()){
+            $post  = input('post.');
 
+            // 退款失败(拒绝退款)
+            if ($post['status'] == '6') {
+                $id = $post['id'];
+                unset($post['id']);
+                $post['update_time'] = time();
+                $rs = Reserve::where('id', $id)->update($post);
+                if($rs){
+                    return_ajax(200, '操作成功');
+                } else {
+                    return_ajax(400, '操作失败');
+                }
+                # code...
+            }else{
+                // 同意退款
+                $reserve = Reserve::where('id', $post['id'])->find();
+                $weix    = new Weix;
+                $res     =  $weix->refund($reserve['order_sn'], $reserve['pay_money']);
+                print_r($res);exit;
+                if ($res['return_code'] == 'SUCCESS'){
+                    Reserve::where('id', $post['id'])->setField('status', $post['status']);
+                    return_ajax(200,'退款成功');
+                }else{
+                    return_ajax(400,'系统繁忙');
+                }
+            }
+
+            
+        }
+        return $this->fetch();
+    }
 
 
 

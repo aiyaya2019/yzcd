@@ -585,3 +585,31 @@ function getChildrenByTencent($id = ''){
           return $tmpInfo;
         }
      }
+
+
+    /**
+     * 生成随机数
+     * @param  [type]  $type  [类型，1：订单号，2随机数]
+     * @param  integer $num   [数量]
+     * @return [type]         [字符串]
+     */
+    function randomCode($type=1,$num=8){
+      $s = '';
+        if ($type==1) {
+            $str = "1234567890";//输出字符集
+            $len = strlen($str)-1;
+            for($i=0 ; $i<20; $i++){
+                $s.= $str[rand(0,$len)];
+            }
+            $str = date('YmdHis').substr($s,5,$num) ;
+        }else{
+            $str = "123456789qwertyuiopasdfghjklzxcvbnm";//输出字符集
+            $len = strlen($str)-1;
+            for($i=0 ; $i<30; $i++){
+                $s.= $str[rand(0,$len)];
+            }
+            $str = str_shuffle(date('YmdHis').$s);
+            $str = substr($str,5,$num);
+        }
+        return $str;
+    }

@@ -172,7 +172,7 @@ class Weix extends Controller
 
     // 接口微信支付
     public function wxpay($body, $order_sn, $money, $openid, $backurl){
-        $money = 0.01;    // 上线需删除
+        // $money = 0.01;    // 上线需删除
         $url   = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
         $base  = Config::field('id,appid,mchid,key')->where('id', 1)->find();
         // $uid   = $model::where('order_sn', $order_sn)->value('uid');
@@ -654,7 +654,7 @@ class Weix extends Controller
      * 微信支付
      */
     public function wxpaywxpay($body, $order_no, $money, $openid, $backurl,$table){
-        $money = 0.01;    // 上线需删除
+        // $money = 0.01;    // 上线需删除
         $url = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
         $base = Db::name('config')->field('id,appid,mchid,key')->where('id', 1)->find();
         $member_id = Db::name($table)->where('order_sn',$order_no)->value('uid');
@@ -702,20 +702,19 @@ class Weix extends Controller
 
 
     //退款
-    public function refund($ordercode){
+    public function refund($ordercode = '', $money = ''){
         $url = 'https://api.mch.weixin.qq.com/secapi/pay/refund';
         $base = Db::name('config')->field('id,appid,mchid,key')->where('id', 1)->find();
         // 接口所需参数(数组形式)
         $parameter = array(
-            'appid'             =>  $base['appid'],//微信分配的小程序ID
-            'mch_id'                    =>  $base['mchid'],//微信支付分配的商户号
-            'nonce_str'             =>  randomCode(),//随机字符串
-            'out_trade_no'      =>  $ordercode,//商户订单号
-            'out_refund_no'             =>  randomCode(),//退款单号
-            'total_fee'         =>  1,//订单总金额
-            'refund_fee'                =>  1,//退款总金额
+            'appid'         =>  $base['appid'],//微信分配的小程序ID
+            'mch_id'        =>  $base['mchid'],//微信支付分配的商户号
+            'nonce_str'     =>  randomCode(),//随机字符串
+            'out_trade_no'  =>  $ordercode,//商户订单号
+            'out_refund_no' =>  randomCode(),//退款单号
+            'total_fee'     =>  $money * 100,//订单总金额
+            'refund_fee'    =>  $money * 100,//退款总金额
         );
-
         $parameter['sign'] = $this->getSign($parameter,$base['key']);
         //接口所需参数(数组转XML格式)
         $xmldata = $this->arrayToXml($parameter);
@@ -738,9 +737,9 @@ class Weix extends Controller
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; MSIE 5.01; Windows NT 5.0)');
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch,CURLOPT_SSLCERTTYPE,'PEM');
-        curl_setopt($ch,CURLOPT_SSLCERT, '/klwl_web/klwl_pj/hzdy.kailly.com/vendor/cert/apiclient_cert.pem');
+        curl_setopt($ch,CURLOPT_SSLCERT, '/klwl_web/klwl_gwf/yzcd.kailly.com/vendor/cert/apiclient_cert.pem');
         curl_setopt($ch,CURLOPT_SSLKEYTYPE,'PEM');
-        curl_setopt($ch,CURLOPT_SSLKEY, '/klwl_web/klwl_pj/hzdy.kailly.com/vendor/cert/apiclient_key.pem');
+        curl_setopt($ch,CURLOPT_SSLKEY, '/klwl_web/klwl_gwf/yzcd.kailly.com/vendor/cert/apiclient_key.pem');
         curl_setopt($ch, CURLOPT_AUTOREFERER, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $xmldata);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -755,11 +754,7 @@ class Weix extends Controller
 
     }
 
-
-
-
-
-/**
+    /**
      * [wxqrcode 生成小程序二维码]
      * @Author   谜一样得男人
      * @DateTime 2019-07-26
@@ -821,6 +816,71 @@ class Weix extends Controller
         file_put_contents($erm,$result);
         return '/' .$erm;
     }
+
+
+
+
+    //提现到微信钱包
+    public function cashWxpay($member, $base)
+    {
+        $url = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers';
+        // $base = $this->finddata('base',array('id'=>1));
+        // 接口所需参数(数组形式)
+        $parameter = array(
+            'mch_appid'             =>  $base['appid'],//申请商户号的appid或商户号绑定的appid
+            'mchid'                 =>  $base['mchid'],//商户号
+            'nonce_str'             =>  randomCode(),//随机字符串
+            'partner_trade_no'      =>  randomCode(),//商户订单号
+            'openid'                =>  $member['openid'],//用户openid
+            'check_name'            =>  'NO_CHECK',//校验真实姓名
+            'amount'                =>  intval($member['money']*100),//总金额
+            'desc'                  =>  '提现',//企业付款备注
+            'spbill_create_ip'      =>  $_SERVER['REMOTE_ADDR'],//终端IP
+        );
+
+        $parameter['sign'] = $this->getSign($parameter,$base['key']);
+        //接口所需参数(数组转XML格式)
+        $xmldata = $this->arrayToXml($parameter);
+        //初始一个curl会话
+        $return = $this->cash_curlPostXml($url,$xmldata);
+        
+        return $return;
+    }
+
+    //引入提现到微信钱包需要的证书
+    public function cash_curlPostXml($url, $xmldata){
+        $ch = curl_init();
+        // $header = "Accept-Charset: utf-8";
+        $header = ['Accept-Charset' => 'utf-8'];
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; MSIE 5.01; Windows NT 5.0)');
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch,CURLOPT_SSLCERTTYPE,'PEM');
+        curl_setopt($ch,CURLOPT_SSLCERT, '/klwl_web/klwl_gwf/yzcd.kailly.com/ThinkPHP/Library/Vendor/Wxpay/cert/apiclient_cert_y.pem');
+        curl_setopt($ch,CURLOPT_SSLKEYTYPE,'PEM');
+        curl_setopt($ch,CURLOPT_SSLKEY, '/klwl_web/klwl_gwf/yzcd.kailly.com/ThinkPHP/Library/Vendor/Wxpay/cert/apiclient_key_y.pem');
+        curl_setopt($ch, CURLOPT_AUTOREFERER, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $xmldata);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $tmpInfo = curl_exec($ch);
+        curl_close($ch);
+        //关闭cURL资源，并且释放系统资源
+        //禁止引用外部xml实体
+        libxml_disable_entity_loader(true);
+        //先把xml转换为simplexml对象，再把simplexml对象转换成 json，再将 json 转换成数组。
+        $value_array = json_decode(json_encode(simplexml_load_string($tmpInfo, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+        return $value_array;
+    
+    }
+
+
+
+
 
 
 

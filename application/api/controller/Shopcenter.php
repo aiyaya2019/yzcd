@@ -730,9 +730,9 @@ class Shopcenter extends Common{
                 Db::startTrans();// 启动事务
                 $rs_reserve = Reserve::where('id', $post['id'])->update($arr);//更新预约信息表
 
-                $rs_refund;
+                // $rs_refund;
                 
-                if ($rs_reserve && $rs_refund) {
+                if ($rs_reserve) {
                     Db::commit();// 提交事务
                     return_ajax(200, '操作成功');
                 }else{
