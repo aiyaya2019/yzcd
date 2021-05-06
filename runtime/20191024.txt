@@ -1,0 +1,15 @@
+Array
+(
+    [id] => 1
+    [order_sn] => 201910241159058
+    [shop_id] => 8
+    [pay_money] => 20.00
+    [pay_time] => 0
+    [term] => 1
+    [end_time] => 1603425545
+    [type] => 1
+    [status] => 1
+    [add_time] => 1571889545
+    [update_time] => 1571889545
+)
+
